@@ -6,9 +6,9 @@ No account, backend, CDN, telemetry, localStorage or IndexedDB. Runtime librarie
 
 ## Download
 
-[Download the standalone HTML](https://github.com/n3me5is-git/totp-bridge/raw/refs/heads/main/dist/index.html) and save it as `TOTP-Bridge.html` (or keep `index.html`). Open the saved file in your browser. The complete app and this guide are embedded; no installation is needed. On the GitHub file page, use **Download raw file**, not **Save page as** on the GitHub preview.
+[Download the standalone HTML](https://github.com/n3me5is-git/totp-bridge/releases/latest/download/TOTP-Bridge.html) and save it as `TOTP-Bridge.html`. Open the saved file in your browser. The complete app and this guide are embedded; no installation is needed. On the GitHub file page, use **Download raw file**, not **Save page as** on the GitHub preview.
 
-Source code, dependency lockfile and build scripts are included in this repository. The committed `dist/index.html` is the ready-to-run build.
+Source code, dependency lockfile and build scripts are included in this repository. The committed `dist/TOTP-Bridge.html` is the ready-to-run build.
 
 ## Quick start
 
@@ -204,7 +204,7 @@ npm start
 # Open http://127.0.0.1:4173
 ```
 
-The build produces `dist/index.html`. The distributed `TOTP-Bridge.html` is that same standalone artifact. Bundles are not minified; module boundaries, descriptive names and crypto comments remain readable. The worker is not hidden in an escaped JSON string. README Markdown is converted during build, not by a runtime network dependency.
+The build produces `dist/TOTP-Bridge.html`. The distributed `TOTP-Bridge.html` is that same standalone artifact. Bundles are not minified; module boundaries, descriptive names and crypto comments remain readable. The worker is not hidden in an escaped JSON string. README Markdown is converted during build, not by a runtime network dependency.
 
 Tests cover RFC 6238 and RFC 4226 vectors, Steam and mOTP against independent Node crypto, mixed Aegis round-trips preserving counter/PIN, opt-in enforcement, incompatible export rejection, URI round-trips, CSV quoting, independently generated Authy ciphertext, Ente/libsodium interoperability, Aegis with independent Node scrypt/GCM decryption, wrong passwords, altered ciphertext, QR decoding by jsQR, KDBX fields and a public Passbolt test fixture. Browser checks use synthetic data only. Verified in Chrome on localhost: Authy CSV, encrypted Ente/Aegis and the official Passbolt KDBX fixture; wrong Ente password rejection; key confirmation and cancellation; current/next OTP rollover and 30-second hiding. Encrypted export generation completes in the UI; the automation download event times out, so the final browser download location has not been independently verified. Direct `file://` navigation cannot be exercised by the browser automation policy, so browser automation uses localhost; manual double-click testing remains separate. Live import into installed Passbolt/Ente/Aegis clients has not been performed.
 

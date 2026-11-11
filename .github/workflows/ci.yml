@@ -18,8 +18,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Check committed standalone build
-        run: git diff --exit-code -- dist/index.html
+        run: git diff --exit-code -- dist/TOTP-Bridge.html
       - uses: actions/upload-artifact@v4
         with:
           name: TOTP-Bridge-standalone
-          path: dist/index.html
+          path: dist/TOTP-Bridge.html

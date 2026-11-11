@@ -49,7 +49,7 @@ const hash = createHash("sha256").update(script).digest("base64");
 const csp = `default-src 'none'; script-src 'sha256-${hash}' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; worker-src blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'`;
 html = html.replace("__CSP__", csp);
 await mkdir("dist", { recursive: true });
-await writeFile("dist/index.html", html);
+await writeFile("dist/TOTP-Bridge.html", html);
 console.log(
   `Built readable offline HTML (${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB)`,
 );

@@ -4,6 +4,10 @@
 
 No account, backend, CDN, telemetry, localStorage or IndexedDB. Runtime libraries, the cryptographic worker, this rendered manual and license notices are embedded in the HTML. Opening the source links is optional and requires Internet; using the tool does not.
 
+## Open in your browser
+
+[Open TOTP Bridge on GitHub Pages](https://n3me5is-git.github.io/totp-bridge/). GitHub serves the static app; imported files, backup passwords and decrypted tokens are processed locally in your browser and are not sent to GitHub. Loading the hosted page requires Internet access and makes a normal page request to GitHub. For offline use, download the standalone HTML below.
+
 ## Download
 
 [Download the standalone HTML](https://github.com/n3me5is-git/totp-bridge/releases/latest/download/TOTP-Bridge.html) and save it as `TOTP-Bridge.html`. Open the saved file in your browser. The complete app and this guide are embedded; no installation is needed. On the GitHub file page, use **Download raw file**, not **Save page as** on the GitHub preview.

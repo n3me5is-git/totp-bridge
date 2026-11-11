@@ -1,0 +1,2 @@
+otpauth://totp/Demo%3Ademo%40example.com?secret=JBSWY3DPEHPK3PXP&issuer=Demo&algorithm=SHA1&digits=6&period=30
+otpauth://totp/Public%20fixture%3A%3Cscript%3Enot%20executable%3C%2Fscript%3E?secret=JBSWY3DPEHPK3PXP&issuer=Public+fixture&algorithm=SHA256&digits=8&period=60

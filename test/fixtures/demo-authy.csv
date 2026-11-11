@@ -1,0 +1,3 @@
+name,encrypted_seed,salt,iv
+demo@example.com,v1plb0PEQiopqXkhrEfpj+lfJpHueC9cf3zqNGSqaik=,demo-literal-salt,07070707070707070707070707070707
+<script>not executable</script>,v1plb0PEQiopqXkhrEfpj+lfJpHueC9cf3zqNGSqaik=,demo-literal-salt,07070707070707070707070707070707

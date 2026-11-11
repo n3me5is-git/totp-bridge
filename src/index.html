@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy" content="__CSP__" />
+    <title>TOTP Bridge — Migrate your keys</title>
+    <style>
+      __CSS__
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#"
+        ><span class="brandmark">▥</span> TOTP Bridge
+        <small>LOCAL TOOL</small></a
+      ><span class="local"><i></i> Only on your device</span
+      ><button id="reset" class="quiet">Clear session ↗</button>
+    </header>
+    <main>
+      <div class="eyebrow">YOUR KEYS. YOUR CHOICE.</div>
+      <h1>Switch apps.<br /><span>Take your TOTP codes with you.</span></h1>
+      <p class="intro">
+        Open an Authy, Ente, Aegis or Passbolt export. Recover your keys,<br
+          class="desktop"
+        />
+        scan the QR codes and back up your tokens for your next app.
+      </p>
+      <nav class="steps" aria-label="Steps">
+        <span><b>01</b> Import your backup</span
+        ><span><b>02</b> Unlock and verify</span
+        ><span><b>03</b> Take your keys with you</span>
+      </nav>
+      <div class="workspace">
+        <aside>
+          <section class="panel">
+            <div class="sectionhead">
+              <h2>Your backup</h2>
+              <span class="tag">01</span>
+            </div>
+            <label class="check"
+              ><input type="checkbox" id="compatibility" /> Activate
+              compatibility with other formats</label
+            >
+            <p class="small">
+              Enable HOTP, Steam and mOTP before importing. Changing this option
+              clears the session. Aegis preserves all supported types; Ente
+              excludes mOTP; Passbolt KDBX export supports TOTP only.
+            </p>
+            <label class="drop" id="drop" for="file"
+              ><span class="upload">↥</span
+              ><strong>Choose or drop a file</strong
+              ><span>CSV Authy · JSON Ente / Aegis · KDBX · TXT</span
+              ><span class="choose">Choose file</span
+              ><input
+                id="file"
+                type="file"
+                accept=".csv,.json,.txt,.aegis,.kdbx"
+                aria-label="Select backup"
+            /></label>
+            <p class="small">
+              Maximum 10 MB. Files are never uploaded to a server.
+            </p>
+            <div id="fileInfo" class="fileinfo" hidden></div>
+            <form id="unlockForm" hidden>
+              <label for="password">Backup password</label
+              ><input
+                id="password"
+                type="password"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Enter the password"
+              />
+              <p id="passwordHelp" class="small"></p>
+              <div id="authyOptions" hidden>
+                <label for="encoding">Authy seed encoding</label
+                ><select id="encoding">
+                  <option value="auto">
+                    Automatic (as in the original project)
+                  </option>
+                  <option value="hex">Force hexadecimal</option>
+                  <option value="raw">Force raw bytes</option>
+                </select>
+                <p class="small">
+                  Defaults when absent from the CSV: SHA1, 6 digits, 30 seconds.
+                  You can edit them in each key's details.
+                </p>
+              </div>
+              <button class="primary full" type="submit">
+                Unlock accounts →
+              </button>
+            </form>
+          </section>
+          <section class="trust">
+            <span>◇</span>
+            <div>
+              <strong>One session. No browser storage.</strong>
+              <p>
+                No sign-up, analytics or browser database. Keys stay in memory
+                until you clear the session or close the page.
+              </p>
+            </div>
+          </section>
+        </aside>
+        <section class="panel accounts">
+          <div class="sectionhead">
+            <h2>Your accounts <span id="count" class="count">0</span></h2>
+            <button id="exportOpen" class="primary" disabled>
+              Export backup ↗
+            </button>
+          </div>
+          <div id="status" role="status" aria-live="polite">
+            Ready to import
+          </div>
+          <div id="empty">
+            <div class="emptyicon">▥</div>
+            <h3>Your next step starts here.</h3>
+            <p>
+              Select a backup to see your accounts.<br />Keys remain hidden
+              until you choose to reveal them.
+            </p>
+            <button id="demo" class="quiet">Explore with demo data →</button>
+          </div>
+          <div id="listTools" hidden>
+            <input
+              id="search"
+              type="search"
+              placeholder="Search accounts or services…"
+              aria-label="Search accounts"
+            /><label class="check"
+              ><input type="checkbox" id="selectAll" /> Select all available
+              accounts</label
+            >
+          </div>
+          <div id="list"></div>
+          <p id="verify" class="footnote" hidden>
+            Before deleting Authy or your original backup, compare codes with
+            the source app. Successful decryption alone does not verify a TOTP.
+          </p>
+        </section>
+      </div>
+      <details class="formats">
+        <summary>
+          Supported formats and technical details <span>+</span>
+        </summary>
+        <div class="formatgrid">
+          <div>
+            <h3>Authy GDPR</h3>
+            <p>
+              CSV import with name, encrypted_seed, salt, iv. AES-256-CBC +
+              PBKDF2-SHA1, 100,000 iterations. Use your Authy backup password.
+            </p>
+          </div>
+          <div>
+            <h3>Ente Auth</h3>
+            <p>
+              Import and export plaintext otpauth and encrypted v1 backups.
+              Argon2id + XChaCha20-Poly1305 secretstream. Export: 64 MiB, 3
+              iterations.
+            </p>
+          </div>
+          <div>
+            <h3>Aegis</h3>
+            <p>
+              Import plain or encrypted JSON; export encrypted v1. scrypt +
+              AES-256-GCM. Open format, also importable in Ente.
+            </p>
+          </div>
+          <div>
+            <h3>Passbolt / KeePass</h3>
+            <p>
+              Password-based KDBX v3/v4 import; encrypted KDBX v3 export.
+              TimeOtp fields and otp URIs. TOTP only: entries without TOTP are
+              counted and excluded. No keyfiles.
+            </p>
+          </div>
+        </div>
+        <p class="small">
+          Standard TOTP by default. Enable compatibility to import HOTP, Steam
+          and mOTP. Aegis preserves all four types; Ente/plaintext preserve HOTP
+          and Steam but reject mOTP. Passbolt KDBX export remains TOTP-only.
+          Other apps can scan standard QR codes where supported; their
+          proprietary backups are not implemented. Expensive Ente KDF settings
+          may require up to 1 GiB of RAM. Aegis groups, icons and notes are
+          retained in Aegis exports; otpauth conversion focuses on TOTP
+          parameters.
+        </p>
+        <p class="small">
+          Authy CBC does not authenticate data: always compare the original
+          codes. JavaScript cannot guarantee physical erasure of every copy of a
+          secret in memory.
+        </p>
+      </details>
+      <details class="formats" id="manual">
+        <summary>User guide / offline README <span>+</span></summary>
+        <article class="readme">__README__</article>
+      </details>
+      <details class="formats">
+        <summary>Libraries and licenses <span>+</span></summary>
+        <p>
+          Project code: MIT. Runtime: libsodium (ISC), hash-wasm, Papa Parse,
+          qrcode, kdbxweb, xmldom and fflate (MIT). Build: esbuild, marked and
+          Prettier (MIT). Tests: jsQR (Apache-2.0). Full copyright notices and
+          terms follow.
+        </p>
+        <pre style="white-space: pre-wrap; overflow-wrap: anywhere">
+__NOTICES__</pre>
+      </details>
+      <footer>
+        <span>TOTP Bridge <b> / </b> A way forward for your keys.</span
+        ><a
+          href="https://github.com/serbbil/Authy-GDPR-Export-Decryption"
+          target="_blank"
+          rel="noreferrer"
+          >Reference project ↗</a
+        >
+      </footer>
+    </main>
+    <dialog id="keyDialog">
+      <div class="dialoghead">
+        <div>
+          <span class="eyebrow">SETUP KEY</span>
+          <h2 id="keyTitle"></h2>
+        </div>
+        <button class="quiet" id="keyClose" aria-label="Close">✕</button>
+      </div>
+      <p id="keyQrHelp" class="small">
+        This QR contains the TOTP secret and allows code generation. Do not
+        share it.
+      </p>
+      <canvas id="qr" aria-label="QR code to import this TOTP"></canvas
+      ><label id="secretLabel" for="secret">Original key in Base32</label
+      ><textarea id="secret" readonly rows="2" spellcheck="false"></textarea>
+      <div id="motpPinGroup" hidden>
+        <label for="motpPin">mOTP PIN</label
+        ><input id="motpPin" readonly autocomplete="off" />
+      </div>
+      <button id="copy" class="secondary full">Copy key</button>
+      <div id="code" class="livecode"></div>
+      <p id="keyNote" class="small"></p>
+      <details id="keyParameters">
+        <summary>OTP parameters</summary>
+        <div class="parametergrid">
+          <label
+            >Algorithm<select id="algorithm">
+              <option>SHA1</option>
+              <option>SHA256</option>
+              <option>SHA512</option>
+            </select></label
+          ><label
+            >Digits<input id="digits" type="number" min="6" max="8" /></label
+          ><label id="periodGroup"
+            >Period (s)<input id="period" type="number" min="1" max="86400"
+          /></label>
+        </div>
+        <label id="counterGroup" hidden
+          >HOTP counter<input
+            id="counter"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]+" /></label
+        ><button id="saveParams" class="secondary full">
+          Apply parameters
+        </button>
+      </details>
+      <p id="keyStatus" role="status" class="small"></p>
+      <p class="small">
+        Automatically hidden after 60 seconds or when the page goes into the
+        background.
+      </p>
+    </dialog>
+    <dialog id="exportDialog">
+      <div class="dialoghead">
+        <div>
+          <span class="eyebrow">YOUR NEXT BACKUP</span>
+          <h2>Take your keys with you</h2>
+        </div>
+        <button class="quiet" id="exportClose" aria-label="Close">✕</button>
+      </div>
+      <p id="exportSummary"></p>
+      <form id="exportForm">
+        <label for="format">Destination format</label
+        ><select id="format">
+          <option value="ente">Ente Auth · encrypted</option>
+          <option value="aegis">
+            Aegis · encrypted (all supported OTP types)
+          </option>
+          <option value="kdbx">Passbolt / KeePass · encrypted KDBX</option>
+          <option value="plain">
+            Plaintext · otpauth (for Ente and other apps)
+          </option>
+        </select>
+        <div id="exportPasswords">
+          <label for="newPassword">New backup password</label
+          ><input
+            id="newPassword"
+            type="password"
+            autocomplete="new-password"
+            minlength="12"
+          /><label for="confirmPassword">Repeat password</label
+          ><input
+            id="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+          />
+          <p class="small">
+            At least 12 characters. Keep this password safe: it cannot be
+            recovered.
+          </p>
+        </div>
+        <div id="plainWarning" class="warning" hidden>
+          <strong>The file will contain all selected keys in plaintext.</strong>
+          <p>Anyone with this file can generate your sign-in codes.</p>
+          <label class="check"
+            ><input id="plainConfirm" type="checkbox" /> I understand and want
+            to download the keys in plaintext.</label
+          >
+        </div>
+        <p class="small">
+          For Passbolt, import the KDBX file. Only TOTP tokens are exported, not
+          login passwords. In Ente, choose “Ente encrypted export”, “Aegis” or
+          “Plain text” to match your file.
+        </p>
+        <p id="exportCompatibility" class="warning" role="status"></p>
+        <p id="exportStatus" role="status"></p>
+        <button id="download" class="primary full" type="submit">
+          Create and download backup ↓
+        </button>
+      </form>
+    </dialog>
+    <dialog id="revealDialog" aria-labelledby="revealTitle">
+      <div class="dialoghead">
+        <h2 id="revealTitle">Reveal the setup key?</h2>
+      </div>
+      <p>
+        The secret key and QR code allow anyone who sees them to generate your
+        OTP codes. Make sure nobody can see or record your screen.
+      </p>
+      <p class="small">For a quick sign-in, use the OTP button instead.</p>
+      <button id="revealCancel" class="secondary">Cancel</button>
+      <button id="revealConfirm" class="primary">Reveal key and QR</button>
+    </dialog>
+    <dialog id="otpDialog" aria-labelledby="otpTitle">
+      <div class="dialoghead">
+        <div>
+          <span class="eyebrow">QUICK ACCESS</span>
+          <h2 id="otpTitle"></h2>
+        </div>
+        <button id="otpClose" class="quiet" aria-label="Close OTP codes">
+          ✕
+        </button>
+      </div>
+      <p>Current code</p>
+      <div id="otpCurrent" class="livecode" aria-label="Current OTP"></div>
+      <p id="otpNextLabel">
+        Next code — wait until the next period before using it
+      </p>
+      <div id="otpNext" class="livecode" aria-label="Next OTP"></div>
+      <button id="hotpAdvance" class="secondary full" hidden>
+        Advance HOTP counter after use
+      </button>
+      <p id="otpCountdown" class="small"></p>
+      <p id="otpUsage" class="small">
+        Codes hide after 30 seconds or when you switch tabs. The setup key is
+        not displayed.
+      </p>
+    </dialog>
+    <!-- Inert, readable worker source. The app creates a local Blob worker from this block. -->
+    <script id="crypto-worker" type="text/plain">
+      __WORKER_SOURCE__
+    </script>
+    <!-- Readable application bundle; CSP authorizes only its exact hash. -->
+    <script id="app-code">
+      __APP__;
+    </script>
+  </body>
+</html>

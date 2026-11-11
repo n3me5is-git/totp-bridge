@@ -139,6 +139,56 @@ test("CSV RFC quoting, semicolon, multiline, apostrophes and BOM", () => {
     inspect("name,encrypted_seed,salt,iv\nhello,abc,salt,iv,extra"),
   );
 });
+test("Authy CSV accepts unquoted, field-quoted and whole-record-quoted exports", async () => {
+  // Synthetic ciphertext only: never commit a user's backup as a fixture.
+  const row = authy(bytes(token.secret));
+  const header = "name,encrypted_seed,salt,iv";
+  const fields = ["Test Token:", row.encrypted_seed, row.salt, row.iv];
+  const quote = (s) => '"' + s.replaceAll('"', '""') + '"';
+  const plain = header + "\n" + fields.join(",");
+  const variants = [
+    plain,
+    header.split(",").map(quote).join(",") + "\n" + fields.map(quote).join(","),
+    quote(header) + "\r\n" + quote(fields.join(",")),
+    "\ufeff" + quote(header) + "\r\n\r\n" + quote(fields.join(",")) + "\r\n",
+    quote(plain),
+    '"' + plain + '"',
+  ];
+  for (const csv of variants) {
+    const parsed = inspect(csv);
+    assert.equal(parsed.rows.length, 1);
+    assert.deepEqual(parsed.rows[0], {
+      name: fields[0],
+      encrypted_seed: fields[1],
+      salt: fields[2],
+      iv: fields[3],
+    });
+    assert.equal(
+      (await decryptAuthy(parsed.rows[0], password)).secret,
+      token.secret,
+    );
+  }
+  const name = 'O\'Brien, "quoted"\naccount';
+  const record = [name, ...fields.slice(1)].map(quote).join(",");
+  assert.equal(
+    inspect(quote(header) + "\n" + quote(record)).rows[0].name,
+    name,
+  );
+  assert.equal(
+    inspect(
+      quote(header) +
+        "\n" +
+        quote(fields.join(",")) +
+        "\n" +
+        quote(fields.join(",")),
+    ).rows.length,
+    2,
+  );
+  assert.throws(() =>
+    inspect(quote(header) + "\n" + quote(fields.join(",") + ",extra")),
+  );
+});
+
 test("Authy interoperates with Node AES CBC / PBKDF2 fixture", async () => {
   assert.equal(
     (await decryptAuthy(authy(bytes(token.secret)), password)).secret,

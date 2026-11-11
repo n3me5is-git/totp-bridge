@@ -257,21 +257,37 @@ export function inspect(text, compatibility = false) {
           };
     throw Error("Unrecognized JSON format");
   }
-  let result = Papa.parse(text, {
-    header: true,
-    skipEmptyLines: "greedy",
-    transformHeader: (h) => h.trim().toLowerCase(),
-  });
-  if (
-    !result.meta.fields?.includes("encrypted_seed") &&
-    text.startsWith('"') &&
-    text.endsWith('"')
-  )
-    result = Papa.parse(text.slice(1, -1), {
+  const parseCsv = (source) =>
+    Papa.parse(source, {
       header: true,
       skipEmptyLines: "greedy",
       transformHeader: (h) => h.trim().toLowerCase(),
     });
+  const hasAuthyColumns = (parsed) =>
+    ["name", "encrypted_seed", "salt", "iv"].every((h) =>
+      parsed.meta.fields?.includes(h),
+    );
+  let result = parseCsv(text);
+  if (!hasAuthyColumns(result)) {
+    // Some exports encode each CSV record as one quoted CSV cell. Decode
+    // that outer layer with a real parser, preserving escaped quotes and
+    // embedded newlines; never strip quotes from ordinary CSV fields.
+    const outer = Papa.parse(text, {
+      delimiter: ",",
+      skipEmptyLines: "greedy",
+    });
+    if (
+      !outer.errors.length &&
+      outer.data.length &&
+      outer.data.every((row) => row.length === 1)
+    ) {
+      const nested = parseCsv(outer.data.map((row) => row[0]).join("\n"));
+      if (hasAuthyColumns(nested)) result = nested;
+    }
+    // Retain support for the legacy extra quote pair around the whole file.
+    if (!hasAuthyColumns(result) && text.startsWith('"') && text.endsWith('"'))
+      result = parseCsv(text.slice(1, -1));
+  }
   if (
     !["name", "encrypted_seed", "salt", "iv"].every((h) =>
       result.meta.fields?.includes(h),

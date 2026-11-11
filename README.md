@@ -72,7 +72,7 @@ Find the file whose header includes:
 name,encrypted_seed,salt,iv
 ```
 
-Load the original CSV directly. Standard quoted fields, commas, semicolons, multiline names and a UTF-8 BOM are supported. A legacy extra wrapper around the entire CSV is also recognized. Do not manually remove ordinary CSV quotes or re-save through a spreadsheet unless necessary; that can alter values. Preserve the original file separately.
+Load the original CSV directly. Standard quoted fields, commas, semicolons, multiline names and a UTF-8 BOM are supported. Exports with each entire record enclosed in quotes are decoded automatically, including escaped quotes and multiline names. A legacy extra wrapper around the entire CSV is also recognized. Do not manually remove ordinary CSV quotes or re-save through a spreadsheet unless necessary; that can alter values. Preserve the original file separately.
 
 If the token columns are missing, ask Twilio specifically for the encrypted token records. If some accounts are absent, resolve them individually with Twilio or the service concerned. This app only processes supplied standard TOTP seeds; it does not export Authy-specific push approvals or recover omitted credentials.
 

@@ -845,7 +845,7 @@ Specifically, I require the encrypted secret seeds (TOTP tokens) for all account
 <p>Find the file whose header includes:</p>
 <pre><code class="language-csv">name,encrypted_seed,salt,iv
 </code></pre>
-<p>Load the original CSV directly. Standard quoted fields, commas, semicolons, multiline names and a UTF-8 BOM are supported. A legacy extra wrapper around the entire CSV is also recognized. Do not manually remove ordinary CSV quotes or re-save through a spreadsheet unless necessary; that can alter values. Preserve the original file separately.</p>
+<p>Load the original CSV directly. Standard quoted fields, commas, semicolons, multiline names and a UTF-8 BOM are supported. Exports with each entire record enclosed in quotes are decoded automatically, including escaped quotes and multiline names. A legacy extra wrapper around the entire CSV is also recognized. Do not manually remove ordinary CSV quotes or re-save through a spreadsheet unless necessary; that can alter values. Preserve the original file separately.</p>
 <p>If the token columns are missing, ask Twilio specifically for the encrypted token records. If some accounts are absent, resolve them individually with Twilio or the service concerned. This app only processes supplied standard TOTP seeds; it does not export Authy-specific push approvals or recover omitted credentials.</p>
 <h2>Format support</h2>
 <table>
@@ -62629,17 +62629,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         };
       throw Error("Unrecognized JSON format");
     }
-    let result = import_papaparse.default.parse(text, {
+    const parseCsv = (source) => import_papaparse.default.parse(source, {
       header: true,
       skipEmptyLines: "greedy",
       transformHeader: (h) => h.trim().toLowerCase()
     });
-    if (!result.meta.fields?.includes("encrypted_seed") && text.startsWith('"') && text.endsWith('"'))
-      result = import_papaparse.default.parse(text.slice(1, -1), {
-        header: true,
-        skipEmptyLines: "greedy",
-        transformHeader: (h) => h.trim().toLowerCase()
+    const hasAuthyColumns = (parsed) => ["name", "encrypted_seed", "salt", "iv"].every(
+      (h) => parsed.meta.fields?.includes(h)
+    );
+    let result = parseCsv(text);
+    if (!hasAuthyColumns(result)) {
+      const outer = import_papaparse.default.parse(text, {
+        delimiter: ",",
+        skipEmptyLines: "greedy"
       });
+      if (!outer.errors.length && outer.data.length && outer.data.every((row) => row.length === 1)) {
+        const nested = parseCsv(outer.data.map((row) => row[0]).join("\n"));
+        if (hasAuthyColumns(nested)) result = nested;
+      }
+      if (!hasAuthyColumns(result) && text.startsWith('"') && text.endsWith('"'))
+        result = parseCsv(text.slice(1, -1));
+    }
     if (!["name", "encrypted_seed", "salt", "iv"].every(
       (h) => result.meta.fields?.includes(h)
     ))
